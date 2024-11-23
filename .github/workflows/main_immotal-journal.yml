@@ -1,4 +1,4 @@
-name: Deploy Vite App to Azure Web App using Service Principal
+name: Build and Deploy Vite App to Azure Web App
 
 on:
   push:
@@ -17,16 +17,26 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20.x'
-      
-      - name: Install dependencies (without build)
-        working-directory: ./frontend
-        run: |
-          npm install
 
-      - name: Zip source code for deployment
+      - name: Install dependencies
         working-directory: ./frontend
-        run: zip -r ../app.zip ./*
-      
+        run: npm install
+
+      - name: Generate config.js with environment variables
+        working-directory: ./frontend/public
+        env:
+          API_URL: ${{ secrets.API_URL }}
+        run: |
+          echo "window.__ENV__ = { API_URL: '$API_URL' };" > config.js
+
+      - name: Build the app
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Zip build artifacts
+        working-directory: ./frontend
+        run: zip -r ../app.zip ./dist/*
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -51,9 +61,10 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+          allow-no-subscriptions: true
 
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'immotal-journal'  # Updated app name
-          package: .
+          app-name: 'immotal-journal' 
+          package: ./dist

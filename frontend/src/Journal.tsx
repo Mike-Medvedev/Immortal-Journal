@@ -12,7 +12,7 @@ const randColor = window.randomColor();
 const Journal = () => {
   const ws_singleton = WebSocketManager.getInstance();
   const [value, setValue] = useState("");
-  const [, setMyCursor] = useState<Cursor>({ x: 0, y: 0 });
+  const [, setMyCursor] = useState<Cursor>({ x: -5, y: -5 });
   const [userData, setUserData] = useState<User[]>([
     { clientId: ws_singleton.clientId },
   ]);
