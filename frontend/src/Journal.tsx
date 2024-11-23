@@ -9,6 +9,7 @@ interface User {
   clientId: string;
 }
 const randColor = window.randomColor();
+
 const Journal = () => {
   const ws_singleton = WebSocketManager.getInstance();
   const [value, setValue] = useState("");
@@ -32,7 +33,7 @@ const Journal = () => {
   };
 
   useEffect(() => {
-    const messageHandler = (event: any) => {
+    const messageHandler = (event: MessageEvent) => {
       console.log(event.data);
       const payload = JSON.parse(event.data);
       if (payload.cursor) {
@@ -71,30 +72,57 @@ const Journal = () => {
         });
       }
     };
+
     const captureMouseMove = (e: MouseEvent) => {
+      const cursor: Cursor = { x: e.clientX, y: e.clientY };
+      updateCursor(cursor);
+    };
+
+    const captureTouchMove = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        const touch = e.touches[0];
+        const cursor: Cursor = { x: touch.clientX, y: touch.clientY };
+        updateCursor(cursor);
+      }
+    };
+
+    const updateCursor = (cursor: Cursor) => {
       setUserData((prev) =>
         prev.map((u) =>
-          u.clientId === ws_singleton.clientId
-            ? { ...u, cursor: { x: e.x, y: e.y } }
-            : u
+          u.clientId === ws_singleton.clientId ? { ...u, cursor } : u
         )
       );
-      setMyCursor({ x: e.x, y: e.y });
+      setMyCursor(cursor);
       ws_singleton.socket.send(
         JSON.stringify({
-          cursor: { x: e.x, y: e.y },
+          cursor,
           clientId: ws_singleton.clientId,
         })
       );
     };
+
     ws_singleton.socket.addEventListener("message", messageHandler);
     window.addEventListener("mousemove", captureMouseMove);
+    window.addEventListener("touchmove", captureTouchMove);
+
+    // Optional: Handle touch start and end if you want to track touch presence
+    const captureTouchStart = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        const touch = e.touches[0];
+        const cursor: Cursor = { x: touch.clientX, y: touch.clientY };
+        updateCursor(cursor);
+      }
+    };
+
+    window.addEventListener("touchstart", captureTouchStart);
 
     return () => {
       ws_singleton.socket.removeEventListener("message", messageHandler);
       window.removeEventListener("mousemove", captureMouseMove);
+      window.removeEventListener("touchmove", captureTouchMove);
+      window.removeEventListener("touchstart", captureTouchStart);
     };
-  }, []);
+  }, [ws_singleton]);
 
   return (
     <main>
@@ -103,25 +131,25 @@ const Journal = () => {
         id="textarea"
         placeholder="Enter journal stuff"
         value={value}
-        onChange={(e) => handleInput(e)}
+        onChange={handleInput}
       />
       {userData.map((u) =>
-        u.clientId != ws_singleton.clientId ? (
+        u.clientId !== ws_singleton.clientId && u.cursor ? (
           <div
+            key={u.clientId}
             className={styles.cursor}
             style={{
-              left: u.cursor?.x || 0,
-              top: u.cursor?.y || 0,
+              left: u.cursor.x,
+              top: u.cursor.y,
               backgroundColor: randColor,
             }}
           >
             <p style={{ color: randColor }}>{u.clientId}</p>
           </div>
-        ) : (
-          ""
-        )
+        ) : null
       )}
     </main>
   );
 };
+
 export default Journal;
