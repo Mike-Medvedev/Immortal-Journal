@@ -1,4 +1,4 @@
-name: Deploy Vite App in Development Mode to Azure Web App
+name: Deploy Vite App to Azure Web App using Service Principal
 
 on:
   push:
@@ -24,9 +24,8 @@ jobs:
           npm install
 
       - name: Zip source code for deployment
-        run: |
-          cd frontend
-          zip -r ../app.zip ./*
+        working-directory: ./frontend
+        run: zip -r ../app.zip ./*
       
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -57,6 +56,4 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: 'immortal-journal-dev'
-          slot-name: 'staging'
-          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
           package: .
