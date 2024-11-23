@@ -63,4 +63,5 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'immortal-journal-server'
-          package: ./release.zip
+          package: ./backend/src/release.zip
+
