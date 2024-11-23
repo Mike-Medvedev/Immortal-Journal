@@ -33,9 +33,25 @@ jobs:
         working-directory: ./frontend
         run: npm run build
 
-      - name: Zip build artifacts
+      - name: Prepare deployment package
         working-directory: ./frontend
-        run: zip -r ../app.zip ./dist/*
+        run: |
+          # Create a deployment directory
+          mkdir deploy
+          # Copy the build output
+          cp -r dist deploy/
+          # Copy server.js and package files
+          cp server.js deploy/
+          cp package.json deploy/
+          cp package-lock.json deploy/
+          # Include node_modules if necessary (not recommended)
+          # cp -r node_modules deploy/
+          # Copy any other necessary files
+          # cp -r public deploy/
+
+      - name: Zip deployment package
+        working-directory: ./frontend/deploy
+        run: zip -r ../../app.zip ./*
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -66,5 +82,5 @@ jobs:
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'immotal-journal' 
-          package: ./dist
+          app-name: 'immotal-journal'  # Ensure this matches your Azure Web App name
+          package: .
