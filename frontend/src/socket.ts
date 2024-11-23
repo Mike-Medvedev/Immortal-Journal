@@ -11,7 +11,7 @@ class WebSocketManager {
   public clientId: string = uniqueNamesGenerator(config);
   private constructor() {
     const characterName: string = uniqueNamesGenerator(config);
-    this.socket = new WebSocket(`ws://192.168.1.20:8000/ws/${characterName}`);
+    this.socket = new WebSocket(`ws://localhost:8000/ws/${characterName}`);
   }
   public static getInstance(): WebSocketManager {
     if (!WebSocketManager._instance) {
