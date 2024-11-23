@@ -38,9 +38,10 @@ jobs:
         run: |
           # Copy build output to root
           cp -r dist/* ./
-          cp server.js ./
+          # No need to copy server.js since it's already at the root
           # Clean up unnecessary files
           rm -rf dist src public node_modules
+
 
       - name: Zip deployment package
         working-directory: ./frontend
