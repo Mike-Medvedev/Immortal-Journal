@@ -36,11 +36,8 @@ jobs:
       - name: Prepare deployment package
         working-directory: ./frontend
         run: |
-          # Copy build output to root
-          cp -r dist/* ./
-          # No need to copy server.js since it's already at the root
-          # Clean up unnecessary files
-          rm -rf dist src public node_modules
+
+          rm -rf src public node_modules
 
 
       - name: Zip deployment package
